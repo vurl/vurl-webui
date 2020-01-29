@@ -3,7 +3,8 @@
   import Spinner from 'svelte-spinner'
 
   let url = ''
-  $: urlsanitized = decodeURI(url).slice(0, 50)
+  $: urlsanitized = decodeURI(url).slice(0, 50) 
+  $: urlsanitizedvisibility = decodeURI(url) !== url
   let apiurl = 'https://vurl.ir/apiv1'
   let redirecturl = 'https://vurl.ir/'
   let shorturlcomplete = false 
@@ -18,10 +19,15 @@
   }
 
   let selectinputtext = (e) => {
-    console.log(e.target.select())
+    e.target.select()
+  }
+
+  let onpaste = () => {
+    setTimeout( () => {geturl()}, 0)
   }
 
   let geturl = () => {
+	// console.log('get url')
 	if (url && url !== '') {
       // TODO: remove this line after implement API
       validationerror = false
@@ -30,7 +36,7 @@
 
 	  fetch(apiurl, {
         method: 'POST',
-		body: new URLSearchParams(`url=${encodeURI(url)}`)
+		body: new URLSearchParams(`url=${url}`)
 	  })
 	  .then((response) => {
 	    return response.text()
@@ -54,16 +60,24 @@
 </script>
 
 <main>
-  <h1>vurl</h1>
+  <img
+    class="brand"
+    src="/static/vurl-logo.png" />
+  <br/>
+  <p>
   <input
     required
     bind:value={url}
 	on:keydown={onenter}
     on:click={selectinputtext}
+    on:paste={onpaste}
     placeholder="Enter your long URL"
     type="text" />
   <button on:click={geturl} >GO</button>
-  <p class="sanitizedurl"> { urlsanitized } </p>
+  </p>
+  {#if urlsanitizedvisibility}
+    <p class="sanitizedurl"> { urlsanitized } </p>
+  {/if}
   {#if shorturlcomplete}
     <h2>
       <a 
@@ -86,12 +100,51 @@
   gap="40"
   />
   {/if}
+  <footer>
+    <ul>
+	  <li>
+         <a 
+		   target="_blank"
+		   href="https://github.com/vurl" >GITHUB</a>
+	  </li>
+    </ul>
+  </footer>
 </main>
+
 
 <style>
   main {
     background: white;
   	text-align: center;
+  }
+
+  footer {
+    width: 90%;
+    margin: 0 5%;
+    height: 48px;
+    color: black;
+    list-style: none;
+    display: block;
+    position: fixed;
+    bottom: 0;
+  } 
+
+  footer li {
+    display: block;
+	float: right;		 
+	list-style: none;
+	font-size: 12px;
+	margin-left: 2em;
+  }
+
+  footer a {
+    color: #999;
+  }
+
+.brand {
+    width: 160px;
+    margin-top: 10%;
+    margin-bottom: 30px;
   }
   
   h1 {
@@ -110,14 +163,18 @@
     height: 46px;
 	line-height: 46px;
     border-radius: 100px;
-    width: 30%;
+    width: 460px;
     min-width: 300px;
+	max-width: 90%;
   }
 
   button {
     border-radius: 100px;
-    width: 64px;
+    width: 86px;
     height: 46px;
+    background: #AB61B7 !important;		
+    color: white;			
+    border: none;
   }
 
   .sanitizedurl {
