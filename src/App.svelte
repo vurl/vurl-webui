@@ -17,6 +17,10 @@
 	}
   }
 
+  let selectinputtext = (e) => {
+    console.log(e.target.select())
+  }
+
   let geturl = () => {
 	if (url && url !== '') {
       // TODO: remove this line after implement API
@@ -55,6 +59,7 @@
     required
     bind:value={url}
 	on:keydown={onenter}
+    on:click={selectinputtext}
     placeholder="Enter your long URL"
     type="text" />
   <button on:click={geturl} >GO</button>
