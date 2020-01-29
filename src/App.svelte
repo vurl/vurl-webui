@@ -3,7 +3,8 @@
   import Spinner from 'svelte-spinner'
 
   let url = ''
-  $: urlsanitized = decodeURI(url).slice(0, 50) 
+  const regexurl = /^(https?:\/\/)?([\da-z\.\-\+]+)\.([a-z]{2,6}).([\/\w \.\-\?!\+\&%=#;]*)*\/?$/gi
+  $: urlsanitized = decodeURI(url).slice(0, 100) 
   $: urlsanitizedvisibility = decodeURI(url) !== url
   let apiurl = 'https://vurl.ir/apiv1'
   let redirecturl = 'https://vurl.ir/'
@@ -11,11 +12,21 @@
   let validationerror = false
   let validationmessage = ''
   let loading = false
+  let pastemode = true
 
   let onenter = (e) => {
 	if (e.keyCode == 13) {
       geturl()
 	}
+  }
+  let onchange = (e) => {
+	setTimeout(() => {
+	  if (url === '') {
+	    pastemode = true  
+	  }	 else {
+	    pastemode =  false 
+	  }
+	}, 0)	
   }
 
   let selectinputtext = (e) => {
@@ -23,12 +34,28 @@
   }
 
   let onpaste = () => {
+	pastemode = true  
     setTimeout( () => {geturl()}, 0)
   }
 
+  async function paste(input) {
+  	url = await navigator.clipboard.readText();
+  	console.log('read from context menu')
+  	console.log(url)
+  }
+
   let geturl = () => {
-	// console.log('get url')
-	if (url && url !== '') {
+	if (pastemode) {
+      paste().then((e) => {
+	    fetchurl()
+      })
+	} else {
+	  fetchurl()
+	}
+  }
+
+  let fetchurl = () => {
+	if (url && url !== '' && url.match(regexurl)) {
       // TODO: remove this line after implement API
       validationerror = false
 	  loading = true	  
@@ -44,17 +71,16 @@
 	  .then((i) => {
 		shorturlcomplete = `${redirecturl}${i}`
  	    loading = false  
+	    pastemode = true  
 	  })
 	  .catch(() => {
         validationerror = true
 	    validationmessage = 'Server Error'  
  	    loading = false	  
 	  })
-	  
-
 	} else {
       validationerror = true
-	  validationmessage = 'Enter Your URL !!'  
+	  validationmessage = 'Enter Your URL !'  
 	}
   }
 </script>
@@ -64,48 +90,71 @@
     class="brand"
     src="/static/vurl-logo.png" />
   <br/>
-  <p>
+  <div class="container">
   <input
     required
     bind:value={url}
+    on:input={onchange}
 	on:keydown={onenter}
     on:click={selectinputtext}
     on:paste={onpaste}
     placeholder="Enter your long URL"
     type="text" />
-  <button on:click={geturl} >GO</button>
+  <button 
+    on:click={geturl} >
+    {#if loading}
+      <Spinner
+      size="20"
+      speed="750"
+      color="#fff"
+      thickness="2"
+      gap="40"
+    />
+    {/if} 
+    {#if !loading}
+      {#if pastemode}
+        PASTE & GO
+      {/if}
+      {#if !pastemode}
+        GO
+      {/if}
+    {/if}
+  </button>
+  <p class="sanitizedurl"> 
+    {#if urlsanitizedvisibility}
+      { urlsanitized } 
+    {/if}
   </p>
-  {#if urlsanitizedvisibility}
-    <p class="sanitizedurl"> { urlsanitized } </p>
-  {/if}
+  </div>
+  <p class="error">
+    {#if validationerror}
+      { validationmessage }
+    {/if}
+  </p>
+  <div class="container resultplot">
   {#if shorturlcomplete}
     <h2>
       <a 
 	    target="_blank"
 	    href={shorturlcomplete} >{ shorturlcomplete }</a>
-      <Copy bind:value={shorturlcomplete} />
     </h2>
+    <Copy bind:value={shorturlcomplete} />
   {/if}
-  {#if validationerror}
-  <p  class="error">
-    { validationmessage }
-  </p>
-  {/if}
-  {#if loading}
-  <Spinner
-  size="50"
-  speed="750"
-  color="#999"
-  thickness="2"
-  gap="40"
-  />
-  {/if}
+  </div>
   <footer>
+    <span class="lovetext">
+	  Made for you by Open Source community with <img width="10" src="/static/heart.svg"/>
+	</span>
     <ul>
 	  <li>
          <a 
 		   target="_blank"
 		   href="https://github.com/vurl" >GITHUB</a>
+	  </li>
+	  <li>
+         <a 
+		   target="_blank"
+		   href="https://github.com/vurl/vurl-cli" >CLI</a>
 	  </li>
     </ul>
   </footer>
@@ -118,30 +167,7 @@
   	text-align: center;
   }
 
-  footer {
-    width: 90%;
-    margin: 0 5%;
-    height: 48px;
-    color: black;
-    list-style: none;
-    display: block;
-    position: fixed;
-    bottom: 0;
-  } 
-
-  footer li {
-    display: block;
-	float: right;		 
-	list-style: none;
-	font-size: 12px;
-	margin-left: 2em;
-  }
-
-  footer a {
-    color: #999;
-  }
-
-.brand {
+  .brand {
     width: 160px;
     margin-top: 10%;
     margin-bottom: 30px;
@@ -155,40 +181,159 @@
   } 
   
   h2 {
-    font-weight: normal;
+    background: #f1f1f1;
+    display: block;
+    float: left;
+    height: 46px;
+    padding: 0;
+    margin: 0;
+	font-weight: normal;
+	line-height: 46px;
+    border-radius: 100px;
+    width: calc(100% - 130px);
+  }
+
+  .container {
+    display: block;
+    clear: both;
+    width: 660px;
+    min-width: 300px;
+	max-width: 90%;
+    margin: 0 auto;
+  }
+
+  .resultplot {
+    margin-top: 0px;
   }
 
   input {
+    display: block;
+    float: left;
     padding: 0 20px;
     height: 46px;
 	line-height: 46px;
     border-radius: 100px;
-    width: 460px;
-    min-width: 300px;
-	max-width: 90%;
+    width: calc(100% - 130px);
   }
 
   button {
     border-radius: 100px;
-    width: 86px;
+    width: 120px;
     height: 46px;
     background: #AB61B7 !important;		
     color: white;			
+    float: right;
     border: none;
   }
 
   .sanitizedurl {
+    display: block;
+    width: 90%;  
+    margin: 0 5%;		   
+    overflow: hidden;	   
+    clear: both;
     color: #888;
-    margin-top: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
   }
 
   .error {
+    display: block;
+    width: 100%;
+    height: 30px;
+    margin-top: 0;
+    padding: 0;
     color: red;
+    font-size: 12px;
   }
 
-  @media (min-width: 640px) {
+  .lovetext {
+    font-size: 12px;
+    float: left;
+    color: #999;
+  }
+
+
+  footer {
+    width: 90%;
+    margin: 0 5%;
+    height: 48px;
+    color: black;
+    list-style: none;
+    display: block;
+    position: fixed;
+    bottom: 0;
+  } 
+
+  footer ul {
+    padding: 0;
+    margin: 0;
+  }
+
+  footer li {
+    display: block;
+	float: right;		 
+	list-style: none;
+	font-size: 12px;
+	margin-left: 2em;
+  }
+
+  footer a {
+    color: #999;
+  }
+
+  @media (max-width: 640px) {
   	main {
   		max-width: none;
   	}
+
+	container {
+      width: 100%;
+      float: left;	  
+	}
+
+	input {
+      width: 100%;
+	}
+
+    button {
+      width: 100%;
+	}
+
+	h2 {
+      width: calc(100% - 40px);
+	  padding: 0 20px;
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
+      overflow: hidden;
+	  font-size: 18px;
+	}
+
+	h2 a {
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
+	}
+
+	.lovetext {
+      width: 100%;
+	  margin-bottom: 10px;
+	}
+
+	footer {
+      height: 60px;
+	}
+
+	footer ul {
+      height: 50px;
+	}
+
+	footer li {
+     width: 50%;
+     float: left;
+	 text-align: center;
+     height: 32px;
+	 margin-top: 10px;
+	 margin-left: 0em;
+	}
   }
 </style>
