@@ -50,3 +50,9 @@ input, button, select, textarea {
 button {
   cursor: pointer;
 }
+
+@media (max-width: 640px) {
+  body {
+    min-height: 400px;
+  }
+}

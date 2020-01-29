@@ -283,6 +283,12 @@
   }
 
   @media (max-width: 640px) {
+    .brand {
+      width: 160px;
+      margin-top: 10%;
+      margin-bottom: 30px;
+    }
+
   	main {
   		max-width: none;
   	}
@@ -321,6 +327,7 @@
 
 	footer {
       height: 60px;
+      position: absolute;
 	}
 
 	footer ul {
