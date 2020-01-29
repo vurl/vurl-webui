@@ -5,7 +5,7 @@
   let url = ''
   let message409visibility = false
   let message409 = 'That is already a vURL link'
-  const regexurl = /^(https?:\/\/)?([\da-z\.\-\+]+)\.([a-z]{2,6}).([\/\w \.\-\?!\+\&%=#;]*)*\/?$/gi
+  const regexurl = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
   $: urlsanitized = decodeURI(url).slice(0, 100) 
   $: urlsanitizedvisibility = decodeURI(url) !== url
   let apiurl = 'https://vurl.ir/apiv1'
@@ -55,14 +55,12 @@
   }
 
   let fetchurl = () => {
-	  console.log('fetch url')
-	  console.log(encodeURI(url))
-	if (url && url !== '') {
+    message409visibility = false
+	if (url && url !== '' && urlsanitized.match(regexurl)) {
       // TODO: remove this line after implement API
       validationerror = false
 	  loading = true	  
 	  shorturlcomplete = ''
-      message409visibility = false
 	  fetch(apiurl, {
         method: 'POST',
 		body: new URLSearchParams(`url=${url}`)
