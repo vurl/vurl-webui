@@ -3,6 +3,8 @@
   import Spinner from 'svelte-spinner'
 
   let url = ''
+  let message409visibility = false
+  let message409 = 'That is already a vURL link'
   const regexurl = /^(https?:\/\/)?([\da-z\.\-\+]+)\.([a-z]{2,6}).([\/\w \.\-\?!\+\&%=#;]*)*\/?$/gi
   $: urlsanitized = decodeURI(url).slice(0, 100) 
   $: urlsanitizedvisibility = decodeURI(url) !== url
@@ -40,8 +42,6 @@
 
   async function paste(input) {
   	url = await navigator.clipboard.readText();
-  	console.log('read from context menu')
-  	console.log(url)
   }
 
   let geturl = () => {
@@ -55,27 +55,32 @@
   }
 
   let fetchurl = () => {
-	if (url && url !== '' && url.match(regexurl)) {
+	  console.log('fetch url')
+	  console.log(encodeURI(url))
+	if (url && url !== '') {
       // TODO: remove this line after implement API
       validationerror = false
 	  loading = true	  
 	  shorturlcomplete = ''
-
+      message409visibility = false
 	  fetch(apiurl, {
         method: 'POST',
 		body: new URLSearchParams(`url=${url}`)
 	  })
 	  .then((response) => {
-	    return response.text()
+		if (response.status === 201) {
+	      return response.text().then((i) => {
+		    shorturlcomplete = `${redirecturl}${i}`
+ 	        loading = false  
+	        pastemode = true  
+		  })
+		} else if (response.status === 409) {
+            message409visibility = true
+ 	        loading = false  
+	        pastemode = true  
+		}
 	  })
-	  .then((i) => {
-		shorturlcomplete = `${redirecturl}${i}`
- 	    loading = false  
-	    pastemode = true  
-	  })
-	  .catch(() => {
-        validationerror = true
-	    validationmessage = 'Server Error'  
+	  .catch((e) => {
  	    loading = false	  
 	  })
 	} else {
@@ -129,6 +134,9 @@
   <p class="error">
     {#if validationerror}
       { validationmessage }
+    {/if}
+    {#if message409visibility}
+      { message409 }
     {/if}
   </p>
   <div class="container resultplot">
