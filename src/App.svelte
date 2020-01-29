@@ -70,8 +70,11 @@
   	text-transform: uppercase;
   	font-size: 4em;
   	font-weight: 100;
-  }
+  } 
   
+  h2 {
+    font-weight: normal;
+  }
 
   input {
     padding: 0 10px;
