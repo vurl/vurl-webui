@@ -1,12 +1,15 @@
 <script>
-  import Copy from './Copy.svelte';
+  import Copy from './Copy.svelte'
+  import Spinner from 'svelte-spinner'
 
   let url = ''
+  $: urlsanitized = decodeURI(url).slice(0, 50)
   let apiurl = 'https://vurl.ir/apiv1'
   let redirecturl = 'https://vurl.ir/'
   let shorturlcomplete = false 
   let validationerror = false
   let validationmessage = ''
+  let loading = false
 
   let onenter = (e) => {
 	if (e.keyCode == 13) {
@@ -18,19 +21,30 @@
 	if (url && url !== '') {
       // TODO: remove this line after implement API
       validationerror = false
+	  loading = true	  
+	  shorturlcomplete = ''
+
 	  fetch(apiurl, {
         method: 'POST',
 		body: new URLSearchParams(`url=${encodeURI(url)}`)
 	  })
 	  .then((response) => {
-	    return response.text();
+	    return response.text()
 	  })
 	  .then((i) => {
 		shorturlcomplete = `${redirecturl}${i}`
+ 	    loading = false  
 	  })
+	  .catch(() => {
+        validationerror = true
+	    validationmessage = 'Server Error'  
+ 	    loading = false	  
+	  })
+	  
+
 	} else {
       validationerror = true
-	  validationmessage = 'You Should Enter Your URL !!'  
+	  validationmessage = 'Enter Your URL !!'  
 	}
   }
 </script>
@@ -42,8 +56,9 @@
     bind:value={url}
 	on:keydown={onenter}
     placeholder="Enter your long URL"
-    type="url" />
+    type="text" />
   <button on:click={geturl} >GO</button>
+  <p class="sanitizedurl"> { urlsanitized } </p>
   {#if shorturlcomplete}
     <h2>
       <a 
@@ -56,6 +71,15 @@
   <p  class="error">
     { validationmessage }
   </p>
+  {/if}
+  {#if loading}
+  <Spinner
+  size="50"
+  speed="750"
+  color="#999"
+  thickness="2"
+  gap="40"
+  />
   {/if}
 </main>
 
@@ -77,7 +101,7 @@
   }
 
   input {
-    padding: 0 10px;
+    padding: 0 20px;
     height: 46px;
 	line-height: 46px;
     border-radius: 100px;
@@ -89,6 +113,11 @@
     border-radius: 100px;
     width: 64px;
     height: 46px;
+  }
+
+  .sanitizedurl {
+    color: #888;
+    margin-top: 0;
   }
 
   .error {
