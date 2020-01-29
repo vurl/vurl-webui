@@ -20,7 +20,7 @@
       validationerror = false
 	  fetch(apiurl, {
         method: 'POST',
-		body: new URLSearchParams(`url=${url}`)
+		body: new URLSearchParams(`url=${encodeURI(url)}`)
 	  })
 	  .then((response) => {
 	    return response.text();
