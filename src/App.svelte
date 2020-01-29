@@ -72,10 +72,16 @@
  	        loading = false  
 	        pastemode = true  
 		  })
+		} else if (response.status === 400) {
+ 	        loading = false  
+            validationerror = true
+	        validationmessage = 'Enter Your URL !'  
 		} else if (response.status === 409) {
             message409visibility = true
  	        loading = false  
 	        pastemode = true  
+		} else {
+ 	        loading = false  
 		}
 	  })
 	  .catch((e) => {
