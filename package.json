@@ -1,15 +1,16 @@
 {
   "name": "svelte-app",
-  "version": "1.0.0",
+  "author": "babakhani.reza@gmail.com",
+  "version": "1.1.0",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public",
     "deploy": "npm run build; scp -r public/* baghali:/var/www/vurl;"
-
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.0",
+    "@rollup/plugin-json": "^4.0.2",
     "@rollup/plugin-node-resolve": "^7.0.0",
     "rollup": "^1.20.0",
     "rollup-plugin-livereload": "^1.0.0",

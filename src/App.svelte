@@ -1,7 +1,8 @@
 <script>
   import Copy from './Copy.svelte'
+  import {version} from '../package.json';
   import Spinner from 'svelte-spinner'
-
+  import { tick } from 'svelte'
   let url = ''
   let message409visibility = false
   let message409 = 'That is already a vURL link'
@@ -15,6 +16,7 @@
   let validationmessage = ''
   let loading = false
   let pastemode = true
+  let happyclipboardmessagevisbility = false
 
   let onenter = (e) => {
 	if (e.keyCode == 13) {
@@ -58,6 +60,7 @@
     message409visibility = false
 	if (url && url !== '' && urlsanitized.match(regexurl)) {
       // TODO: remove this line after implement API
+      happyclipboardmessagevisbility = false
       validationerror = false
 	  loading = true	  
 	  shorturlcomplete = ''
@@ -71,6 +74,7 @@
 		    shorturlcomplete = `${redirecturl}${i}`
  	        loading = false  
 	        pastemode = true  
+		    copy()
 		  })
 		} else if (response.status === 400) {
  	        loading = false  
@@ -92,15 +96,33 @@
 	  validationmessage = 'Enter Your URL !'  
 	}
   }
+
+  let copytextarea;
+  async function copy() {
+    let valueCopy = shorturlcomplete;
+    await tick();
+    copytextarea.focus();
+	copytextarea.select();
+	try {
+		const successful = document.execCommand('copy');
+		if (!successful) {
+		} else{
+			happyclipboardmessagevisbility = true
+		}
+	} catch (err) {
+	}
+  }
 </script>
 
 <main>
+  <textarea bind:this={copytextarea}>{ shorturlcomplete }</textarea>
   <img
     class="brand"
     src="/static/vurl-logo.png" />
   <br/>
   <div class="container">
   <input
+    autofocus="true"
     required
     bind:value={url}
     on:input={onchange}
@@ -151,6 +173,7 @@
 	    href={shorturlcomplete} >{ shorturlcomplete }</a>
     </h2>
     <Copy bind:value={shorturlcomplete} />
+    <span class="happy-clipboard-meesage">Copied to clipboard successfully</span>
   {/if}
   </div>
   <footer>
@@ -193,7 +216,7 @@
   } 
   
   h2 {
-    background: #f1f1f1;
+    background: #f9f9f9;
     display: block;
     float: left;
     height: 46px;
@@ -202,7 +225,17 @@
 	font-weight: normal;
 	line-height: 46px;
     border-radius: 100px;
-    width: calc(100% - 130px);
+    width: calc(100% - 140px);
+  }
+
+  .happy-clipboard-meesage {
+    display: block;
+    width: 100%;
+    color: green;
+	margin-top: 10px;	   
+    float: left;
+    font-size: .9em;
+    width: calc(100% - 140px);
   }
 
   .container {
@@ -225,12 +258,12 @@
     height: 46px;
 	line-height: 46px;
     border-radius: 100px;
-    width: calc(100% - 130px);
+    width: calc(100% - 140px);
   }
 
   button {
     border-radius: 100px;
-    width: 120px;
+    width: 130px;
     height: 46px;
     background: #AB61B7 !important;		
     color: white;			
@@ -292,6 +325,20 @@
 
   footer a {
     color: #999;
+  }
+
+  textarea {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 2em;
+    height: 2em;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    opacity: 0;
+    background: transparent;
   }
 
   @media (max-width: 640px) {

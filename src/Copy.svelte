@@ -19,7 +19,7 @@
 		copytext = 'DONE'
 		clearTimeout(timer)
 		timer = setTimeout(() => {
-		    copytext = 'Copy'
+		    copytext = 'COPY'
 		}, 2000)  
 	  }
     } catch (err) {
@@ -54,7 +54,7 @@
   button {
     border-radius: 100px;
     float: right;
-    width: 120px;
+    width: 130px;
     height: 48px;
     line-height: 35px;
     background-color: white !important;
